@@ -1,8 +1,11 @@
 module Wikipedia
 
-using HTTP, Gumbo, Cascadia
+include("Articles.jl")
+using .Articles
 
+using HTTP, Gumbo, Cascadia
 import Cascadia: matchFirst
+
 
 const PROTOCOL = "https://"
 
@@ -14,13 +17,6 @@ const HREF = "href"
 const WIKI_START = "/wiki/"
 
 export getlinks, fetchrandom, articleinfo
-
-struct Article
-    content::String
-    links::Vector{String}
-    title::String
-    image::String
-end
 
 function get_title(body::HTMLElement)::String
     title = matchFirst(Selector(".mw-page-title-main"), body)
@@ -73,23 +69,18 @@ function fetchrandom()::String
     fetchpage(RANDOM_PAGE_URL)
 end
 
-function articleinfo(body::String)::Dict{Symbol, Any}
+function articleinfo(body::String)::Article
     if ! isempty(body)
         dom = Gumbo.parsehtml(body)
-        return Dict{Symbol, Any}(
-            :content => body,
-            :links => extractlinks(dom.root),
-            :title => get_title(dom.root),
-            :photo => get_photo(dom.root)
+        return Article(
+            body,
+            extractlinks(dom.root),
+            get_title(dom.root),
+            get_photo(dom.root)
         )
 
     end
-    Dict{Symbol, Any}(
-        :content => body,
-        :links => "",
-        :title => "",
-        :photo => ""
-    )
+    emptyarticle()
 end
 
 end
