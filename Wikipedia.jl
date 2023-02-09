@@ -1,5 +1,6 @@
 module Wikipedia
 
+include("Database.jl")
 include("Articles.jl")
 using .Articles
 
@@ -34,12 +35,20 @@ function get_photo(body::HTMLElement)::String
 end
 
 function checkheaders(response::HTTP.Response)::Bool
+    
     response.status == 200 && length(response.body) > 0
 end
 
-function fetchpage(url::String)::String
+function getrelative(url)
+    exp = r"/wiki/(.*)$"
+    return String(first(eachmatch(exp, url))[1])
+end
+
+function fetchpage(url::String)::Tuple{String, String}
     response = HTTP.get(url)
-    checkheaders(response) ? String(response.body) : ""
+    url = isnothing(response.request.parent) ? getrelative(url) : getrelative(response.request.parent["location"])
+    content = checkheaders(response) ? String(response.body) : ""
+    content, url
 end
 
 function hasreference(elem::HTMLElement)::Bool
@@ -65,19 +74,29 @@ function getlinks(body::String)::Vector{String}
     links
 end
 
-function fetchrandom()::String
+function fetchrandom()::Tuple{String, String}
     fetchpage(RANDOM_PAGE_URL)
 end
 
-function articleinfo(body::String)::Article
+function articleinfo(body::String, url::String)::Article
+
+    persisted = Articles.find(url)
+
+    if !isempty(persisted)
+        return first(persisted)
+    end
+
     if ! isempty(body)
         dom = Gumbo.parsehtml(body)
-        return Article(
+        article = Article(
             body,
             extractlinks(dom.root),
             get_title(dom.root),
-            get_photo(dom.root)
+            get_photo(dom.root),
+            url
         )
+        Articles.save(article)
+        return article 
 
     end
     emptyarticle()
