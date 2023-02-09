@@ -21,9 +21,14 @@ function newgame(difficulty = HARD)::Vector{Articles.Article}
     articles = newgame_setup()
 
     for i in 1:difficulty
-        article = rand(articles[end].links) |> Wikipedia.fetchpage
+        link = rand(articles[end].links)
+        article = link |> Wikipedia.fetchIfPersisted
 
-        push!(articles, Wikipedia.articleinfo(article...))
+        if isnothing(article)
+          article = Wikipedia.articleinfo(Wikipedia.fetchpage(link)...)
+        end
+
+        push!(articles, article)
     
     end
 

@@ -78,6 +78,16 @@ function fetchrandom()::Tuple{String, String}
     fetchpage(RANDOM_PAGE_URL)
 end
 
+function fetchIfPersisted(url::String)::Union{Nothing, Article}
+    persisted = Articles.find(url)
+
+    if !isempty(persisted)
+        return first(persisted)
+    end
+
+    nothing
+end
+
 function articleinfo(body::String, url::String)::Article
 
     persisted = Articles.find(url)

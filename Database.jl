@@ -4,7 +4,7 @@ using MySQL
 
 const HOST = "localhost"
 const USER = "root"
-const PASS = "SomePassword"
+const PASS = "EEWQeewq2"
 const DB = "six_degrees"
 
 const CONN = DBInterface.connect(MySQL.Connection, HOST, USER, PASS, db=DB, unix_socket="/var/run/mysqld/mysqld.sock")

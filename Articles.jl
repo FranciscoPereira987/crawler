@@ -48,7 +48,7 @@ function save(article::Article)
         """
     stmt = DBInterface.prepare(CONN, sql)
     DBInterface.execute(stmt, [article.title, article.content, JSON.json(article.links), article.image, article.url])
-    println("Inserted")
+    
 end
 
 function find(url::String)::Vector{Article}
