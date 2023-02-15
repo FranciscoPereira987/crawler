@@ -45,37 +45,53 @@ end
 
 function objective(game::Game)
     """
-<h3>
-Go from <i>$(game.articles[1].title)</i>
-to <i>$(game.articles[end].title)</i>
-</h3>
-<h5>
-Progress: $(size(game.history, 1) - 1)
-out of maximum $(size(game.articles, 1) - 1) links
-in $(game.steps_taken) steps
-</h5>
-<h6>
-<a href="/$(game.id)/solution">Solution?</a> |
-<a href="/">New game</a>
+    <div class="jumbotron">
+    <h3>Go from
+    <span class="badge badge-info">$(game.articles[1].title)</span>
+    to
+    <span class="badge badge-info">$(game.articles[end].title)</span>
+    </h3>
+    <hr/>
+    <h5>
+    Progress:
+    <span class="badge badge-dark">$(size(game.history, 1) - 1)</span>
+    out of maximum
+    <span class="badge badge-dark">$(size(game.articles, 1) - 1)</span>
+    links in
+    <span class="badge badge-dark">$(game.steps_taken)</span>
+    steps
+    </h5>
+    $(history(game))
+    <hr/>
+    <h6>
+    <a href="/$(game.id)/solution" class="btn btn-primary btn-lg">Solution?</a>
+    |
+    <a href="/" class="btn btn-primary btn-lg">New game</a>
+    </h6>
+    </div>
 </h6>"""
 end
 
 function history(game::Game)
+    html = ""
     if puzzlesolved(game) 
-        return ("<h3>You've Won</h3>")
+        html *= ("<h3>You've Won</h3>")
     end
-    html = "<ol>"
-    iter = 0
-    for a in game.history
-        html *= """
-            <li><a href="/$(game.id)/back/$(iter + 1)">$(a.title)</a></li>
-                """
-        iter += 1
-    end
-    html = html * "</ol>"
     if lostgame(game) 
         html *= "<h3>You've Lost</h3>"
     end
+    html *= """<ol class="list-group">"""
+    iter = 0
+    for a in game.history
+        html *= """
+        <li class="list-group-item">
+        <a href="/$(game.id)/back/$(iter + 1)">$(a.title)</a>
+        </li>
+        """
+        iter += 1
+    end
+    html = html * "</ol>"
+    
     html
 end
 
