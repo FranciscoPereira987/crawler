@@ -9,6 +9,8 @@ const EASY = 2
 const MEDIUM = 4
 const HARD = 6 
 
+const MAX_NUMBER_OF_STEPS = 10
+
 function newgame_setup()::Vector{Articles.Article}
   article = Wikipedia.fetchrandom()
   
@@ -22,7 +24,7 @@ function newgame(difficulty = HARD)::Vector{Articles.Article}
 
     for i in 1:difficulty
         link = rand(articles[end].links)
-        article = link |> Wikipedia.fetchIfPersisted
+        article = split(link, "/", keepempty=false) |> last |> string |> Wikipedia.fetchIfPersisted
 
         if isnothing(article)
           article = Wikipedia.articleinfo(Wikipedia.fetchpage(link)...)

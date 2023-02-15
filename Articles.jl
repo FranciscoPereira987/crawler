@@ -1,6 +1,6 @@
 module Articles
 
-export Article, emptyarticle
+export Article, emptyarticle, wikiarticle
 
 using ..Database, MySQL, JSON, Tables, DataFrames
 
@@ -12,6 +12,22 @@ struct Article
     title::String
     image::String
     url::String
+end
+
+function wikiarticle(this::Article, gameid::String, head::Function, body::Function)
+    """
+    <!DOCTYPE html>
+    <html>
+    $(head())
+    <body>
+    $(body())
+    <h1>$(this.title)</h1>
+    <div id="wiki-article">
+    $(replace(this.content, "/wiki/"=>"/$(gameid)/wiki/"))
+    </div>
+    </body>
+    </html>
+    """
 end
 
 
@@ -53,7 +69,8 @@ end
 
 function find(url::String)::Vector{Article}
     articles = Article[]
-    result = DBInterface.execute(CONN, "SELECT * FROM `articles` WHERE url='$url'")
+    println(url)
+    result = DBInterface.execute(CONN, "SELECT * FROM `articles` WHERE url='$(url)'")
     
     result = DataFrame(result)
     if isempty(result)

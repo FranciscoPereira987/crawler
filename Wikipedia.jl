@@ -17,7 +17,14 @@ const RANDOM_PAGE_URL = WIKI_DOMAIN * "/wiki/Special:Random"
 const HREF = "href"
 const WIKI_START = "/wiki/"
 
-export getlinks, fetchrandom, articleinfo
+export getlinks, fetchrandom, articleinfo, fetch_article
+
+function fetch_article(url::String)::Article
+    lookup_id = last(split(url, "/", keepempty=false)) |> string
+    article = fetchIfPersisted(lookup_id)
+
+    isnothing(article) ? articleinfo(fetchpage(buildURL(url))...) : article
+end
 
 function get_title(body::HTMLElement)::String
     title = matchFirst(Selector(".mw-page-title-main"), body)
@@ -32,6 +39,10 @@ function get_photo(body::HTMLElement)::String
     
     isnothing(e) ? "" : e.attributes["src"]
    
+end
+
+function getcontent(body::HTMLElement)::String
+    matchFirst(Selector("#bodyContent"), body) |> string
 end
 
 function checkheaders(response::HTTP.Response)::Bool
@@ -90,16 +101,12 @@ end
 
 function articleinfo(body::String, url::String)::Article
 
-    persisted = Articles.find(url)
-
-    if !isempty(persisted)
-        return first(persisted)
-    end
+    
 
     if ! isempty(body)
         dom = Gumbo.parsehtml(body)
         article = Article(
-            body,
+            getcontent(dom.root),
             extractlinks(dom.root),
             get_title(dom.root),
             get_photo(dom.root),
